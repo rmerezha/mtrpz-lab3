@@ -1,0 +1,25 @@
+FROM golang:1.23.7 AS build
+
+ENV CGO_ENABLED=0
+
+WORKDIR /usr/share/app
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY . .
+
+RUN go build -o build/fizzbuzz
+
+FROM scratch
+
+WORKDIR /app
+
+COPY --from=build /usr/share/app/build/fizzbuzz ./
+COPY --from=build /usr/share/app/templates ./templates
+
+EXPOSE 8080
+
+ENTRYPOINT ["./fizzbuzz"]
+CMD ["serve"]
